@@ -73,7 +73,7 @@ fn FolderTree(context: &mut KayakContext) {
             set_close_b(false)
         }
     }));
-    let set_open_b = set_b_open.clone();
+    let set_open_b = set_b_open;
     let open_b = Some(OnEvent::new(move |_, event| {
         if event.event_type == EventType::Click {
             set_open_b(true)
@@ -87,7 +87,7 @@ fn FolderTree(context: &mut KayakContext) {
     });
     let fold_c_child_styles = Style {
         background_color: StyleProp::Value(Color::new(0.16863, 0.12549, 0.15294, 1.0)),
-        ..fold_child_base_styles.clone()
+        ..fold_child_base_styles
     };
     let try_style = Style {
         color: StyleProp::Value(Color::new(1.0, 0.5, 0.5, 1.0)),

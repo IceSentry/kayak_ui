@@ -69,7 +69,7 @@ pub fn Window(
         ..Style::default()
     };
 
-    let title = title.clone();
+    // let title = title;
     rsx! {
         <Clip styles={Some(clip_styles)}>
             <Background styles={Some(title_background_styles)}>

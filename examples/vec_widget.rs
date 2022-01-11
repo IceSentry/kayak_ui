@@ -22,7 +22,7 @@ fn startup(
             <App>
                 {VecTracker::from(data.iter().map(|data| {
                     constructor! {
-                        <Text content={data.clone().to_string()} size={16.0} />
+                        <Text content={data.to_string()} size={16.0} />
                     }
                 }))}
             </App>

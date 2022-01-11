@@ -34,9 +34,18 @@ fn Counter(context: &mut KayakContext) {
     };
 
     let (count, set_count, ..) = use_state!(0i32);
-    let on_event = OnEvent::new(move |_, event| {
+    let on_add = {
+        let set_count = set_count.clone();
+        OnEvent::new(move |_, event| {
+            if event.event_type == EventType::Click {
+                set_count(count + 1)
+            }
+        })
+    };
+
+    let on_sub = OnEvent::new(move |_, event| {
         if event.event_type == EventType::Click {
-            set_count(count + 1)
+            set_count(count - 1)
         }
     });
 
@@ -44,8 +53,11 @@ fn Counter(context: &mut KayakContext) {
         <>
             <Window position={(50.0, 50.0)} size={(300.0, 300.0)} title={"Counter Example".to_string()}>
                 <Text styles={Some(text_styles)} size={32.0} content={format!("Current Count: {}", count)}>{}</Text>
-                <Button on_event={Some(on_event)}>
-                    <Text styles={Some(button_text_styles)} size={24.0} content={"Count!".to_string()}>{}</Text>
+                <Button on_event={Some(on_add)}>
+                    <Text styles={Some(button_text_styles)} size={24.0} content={"+1".to_string()}>{}</Text>
+                </Button>
+                <Button on_event={Some(on_sub)}>
+                    <Text styles={Some(button_text_styles)} size={24.0} content={"-1".to_string()}>{}</Text>
                 </Button>
             </Window>
         </>

@@ -64,7 +64,7 @@ impl WidgetManager {
         mut widget: T,
         parent: Option<Index>,
     ) -> (bool, Index) {
-        if let Some(parent) = parent.clone() {
+        if let Some(parent) = parent {
             if let Some(parent_children) = self.tree.children.get_mut(&parent) {
                 // Pull child and update.
                 if let Some(widget_id) = parent_children.get(index) {
