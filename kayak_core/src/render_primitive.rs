@@ -64,7 +64,7 @@ impl From<&Style> for RenderPrimitive {
                 layout: Rect::default(),
             },
             RenderCommand::Quad => Self::Quad {
-                background_color: background_color,
+                background_color,
                 border_radius: style.border_radius.resolve(),
                 layout: Rect::default(),
             },

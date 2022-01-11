@@ -1,8 +1,11 @@
 use crate::{Binding, Changeable};
 use std::collections::HashMap;
 
-use crate::{multi_state::MultiState, widget_manager::WidgetManager, Index, InputEvent, MutableBound, Releasable};
 use crate::event_dispatcher::EventDispatcher;
+use crate::{
+    multi_state::MultiState, widget_manager::WidgetManager, Index, InputEvent, MutableBound,
+    Releasable,
+};
 
 pub struct KayakContext {
     widget_states: HashMap<crate::Index, resources::Resources>,
@@ -13,7 +16,7 @@ pub struct KayakContext {
     widget_providers: HashMap<std::any::TypeId, HashMap<crate::Index, resources::Resources>>,
     global_bindings: HashMap<crate::Index, Vec<flo_binding::Uuid>>,
     widget_state_lifetimes:
-    HashMap<crate::Index, HashMap<flo_binding::Uuid, Box<dyn crate::Releasable>>>,
+        HashMap<crate::Index, HashMap<flo_binding::Uuid, Box<dyn crate::Releasable>>>,
     current_id: Index,
     // TODO: Make widget_manager private.
     pub widget_manager: WidgetManager,
@@ -56,14 +59,15 @@ impl KayakContext {
         &mut self,
         global_state: &crate::Binding<T>,
     ) {
-        if !self.global_bindings.contains_key(&self.current_id) {
-            self.global_bindings.insert(self.current_id, vec![]);
-        }
+        self.global_bindings
+            .entry(self.current_id)
+            .or_insert_with(std::vec::Vec::new);
 
         let global_binding_ids = self.global_bindings.get_mut(&self.current_id).unwrap();
 
         if !global_binding_ids.contains(&global_state.id) {
-            let lifetime = Self::create_lifetime(&global_state, &self.widget_manager, self.current_id);
+            let lifetime =
+                Self::create_lifetime(global_state, &self.widget_manager, self.current_id);
             Self::insert_state_lifetime(
                 &mut self.widget_state_lifetimes,
                 self.current_id,
@@ -99,10 +103,16 @@ impl KayakContext {
     ///
     /// This works much like [create_state](Self::create_state), except that the state is also made available to any children. They can
     /// access this provider's state by calling [create_consumer](Self::create_consumer).
-    pub fn create_provider<T: resources::Resource + Clone + PartialEq>(&mut self, initial_state: T) -> Binding<T> {
+    pub fn create_provider<T: resources::Resource + Clone + PartialEq>(
+        &mut self,
+        initial_state: T,
+    ) -> Binding<T> {
         let type_id = initial_state.type_id();
 
-        let providers = self.widget_providers.entry(type_id.clone()).or_insert(HashMap::default());
+        let providers = self
+            .widget_providers
+            .entry(type_id)
+            .or_insert_with(HashMap::default);
 
         if let Some(provider) = providers.get(&self.current_id) {
             if let Ok(state) = provider.get::<Binding<T>>() {
@@ -129,7 +139,9 @@ impl KayakContext {
     /// Creates a context consumer for the given type, [T]
     ///
     /// This allows direct access to a parent's state data made with [create_provider](Self::create_provider).
-    pub fn create_consumer<T: resources::Resource + Clone + PartialEq>(&mut self) -> Option<Binding<T>> {
+    pub fn create_consumer<T: resources::Resource + Clone + PartialEq>(
+        &mut self,
+    ) -> Option<Binding<T>> {
         let type_id = std::any::TypeId::of::<T>();
 
         if let Some(providers) = self.widget_providers.get(&type_id) {
@@ -137,7 +149,7 @@ impl KayakContext {
             while index.is_some() {
                 // Traverse the parents to find the one with the given state data
                 index = self.widget_manager.tree.get_parent(index.unwrap());
-    
+
                 let key = index.unwrap();
                 if let Some(provider) = providers.get(&key) {
                     if let Ok(state) = provider.get::<Binding<T>>() {
@@ -168,7 +180,23 @@ impl KayakContext {
             }
         }
 
-        if self.widget_states.contains_key(&self.current_id) {
+        if let std::collections::hash_map::Entry::Vacant(e) =
+            self.widget_states.entry(self.current_id)
+        {
+            let mut states = resources::Resources::default();
+            let state = crate::bind(initial_state);
+            let lifetime = Self::create_lifetime(&state, &self.widget_manager, self.current_id);
+            Self::insert_state_lifetime(
+                &mut self.widget_state_lifetimes,
+                self.current_id,
+                state.id,
+                lifetime,
+            );
+            states.insert(MultiState::new(state));
+            e.insert(states);
+            self.current_state_index += 1;
+            self.last_state_type_id = Some(state_type_id);
+        } else {
             let states = self.widget_states.get_mut(&self.current_id).unwrap();
             if !states.contains::<MultiState<crate::Binding<T>>>() {
                 let state = crate::bind(initial_state);
@@ -197,22 +225,8 @@ impl KayakContext {
                 states.insert(multi_state);
                 self.last_state_type_id = Some(state_type_id);
             }
-        } else {
-            let mut states = resources::Resources::default();
-            let state = crate::bind(initial_state);
-            let lifetime = Self::create_lifetime(&state, &self.widget_manager, self.current_id);
-            Self::insert_state_lifetime(
-                &mut self.widget_state_lifetimes,
-                self.current_id,
-                state.id,
-                lifetime,
-            );
-            states.insert(MultiState::new(state));
-            self.widget_states.insert(self.current_id, states);
-            self.current_state_index += 1;
-            self.last_state_type_id = Some(state_type_id);
         }
-        return self.get_state();
+        self.get_state()
     }
 
     /// Creates a callback that runs as a side-effect of its dependencies, running only when one of them is updated.
@@ -242,7 +256,11 @@ impl KayakContext {
     ///     println!("Value: {}", my_state_clone.get());
     /// }, &[&my_state]);
     /// ```
-    pub fn create_effect<'a, F: Fn() + Send + Sync + 'static>(&'a mut self, effect: F, dependencies: &[&'a dyn Changeable]) {
+    pub fn create_effect<'a, F: Fn() + Send + Sync + 'static>(
+        &'a mut self,
+        effect: F,
+        dependencies: &[&'a dyn Changeable],
+    ) {
         // === Bind to Dependencies === //
         let notification = crate::notify(effect);
         let mut lifetimes = Vec::default();
@@ -262,9 +280,14 @@ impl KayakContext {
         };
 
         // === Insert Effect === //
-        let effects = self.widget_effects.entry(self.current_id).or_insert(resources::Resources::default());
+        let effects = self
+            .widget_effects
+            .entry(self.current_id)
+            .or_insert_with(resources::Resources::default);
         if effects.contains::<MultiState<Vec<Box<dyn Releasable>>>>() {
-            let mut state = effects.get_mut::<MultiState<Vec<Box<dyn Releasable>>>>().unwrap();
+            let mut state = effects
+                .get_mut::<MultiState<Vec<Box<dyn Releasable>>>>()
+                .unwrap();
             let old_size = state.data.len();
             state.get_or_add(lifetimes, &mut self.current_effect_index);
             if old_size != state.data.len() {
@@ -286,11 +309,15 @@ impl KayakContext {
                 return Some(state.get(self.current_state_index - 1).clone());
             }
         }
-        return None;
+        None
     }
 
     /// Create a `Releasable` lifetime that marks the current node as dirty when the given state changes
-    fn create_lifetime<T: resources::Resource + Clone + PartialEq>(state: &Binding<T>, widget_manager: &WidgetManager, id: Index) -> Box<dyn Releasable> {
+    fn create_lifetime<T: resources::Resource + Clone + PartialEq>(
+        state: &Binding<T>,
+        widget_manager: &WidgetManager,
+        id: Index,
+    ) -> Box<dyn Releasable> {
         let dirty_nodes = widget_manager.dirty_nodes.clone();
         state.when_changed(crate::notify(move || {
             if let Ok(mut dirty_nodes) = dirty_nodes.lock() {
@@ -308,16 +335,12 @@ impl KayakContext {
         binding_id: flo_binding::Uuid,
         lifetime: Box<dyn crate::Releasable>,
     ) {
-        if lifetimes.contains_key(&id) {
-            if let Some(lifetimes) = lifetimes.get_mut(&id) {
-                if !lifetimes.contains_key(&binding_id) {
-                    lifetimes.insert(binding_id, lifetime);
-                }
-            }
-        } else {
+        if let std::collections::hash_map::Entry::Vacant(e) = lifetimes.entry(id) {
             let mut new_hashmap = HashMap::new();
             new_hashmap.insert(binding_id, lifetime);
-            lifetimes.insert(id, new_hashmap);
+            e.insert(new_hashmap);
+        } else if let Some(lifetimes) = lifetimes.get_mut(&id) {
+            lifetimes.entry(binding_id).or_insert(lifetime);
         }
     }
 
@@ -415,8 +438,8 @@ impl KayakContext {
 
     #[cfg(feature = "bevy_renderer")]
     pub fn query_world<T: bevy::ecs::system::SystemParam, F, R>(&mut self, mut f: F) -> R
-        where
-            F: FnMut(<T::Fetch as bevy::ecs::system::SystemParamFetch<'_, '_>>::Item) -> R,
+    where
+        F: FnMut(<T::Fetch as bevy::ecs::system::SystemParamFetch<'_, '_>>::Item) -> R,
     {
         let mut world = self.get_global_state::<bevy::prelude::World>().unwrap();
         let mut system_state = bevy::ecs::system::SystemState::<T>::new(&mut world);
@@ -427,5 +450,11 @@ impl KayakContext {
         system_state.apply(&mut world);
 
         r
+    }
+}
+
+impl Default for KayakContext {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -52,15 +52,13 @@ impl KayakFont {
     }
 
     pub fn generate_char_ids(&mut self) {
-        let mut count = 0;
-        for glyph in self.sdf.glyphs.iter() {
-            self.char_ids.insert(glyph.unicode, count);
-            count += 1;
+        for (count, glyph) in self.sdf.glyphs.iter().enumerate() {
+            self.char_ids.insert(glyph.unicode, count as u32);
         }
     }
 
     pub fn get_char_id(&self, c: char) -> Option<u32> {
-        self.char_ids.get(&c).and_then(|id| Some(*id))
+        self.char_ids.get(&c).copied()
     }
 
     pub fn get_word_width(&self, word: &str, font_size: f32) -> f32 {
@@ -91,7 +89,7 @@ impl KayakFont {
         alignment: Alignment,
         position: (f32, f32),
         max_size: (f32, f32),
-        content: &String,
+        content: &str,
         line_height: f32,
         font_size: f32,
     ) -> Vec<LayoutRect> {
@@ -179,9 +177,11 @@ impl KayakFont {
                 Alignment::Middle => (max_size.0 - line_width) / 2.0,
                 Alignment::End => max_size.0 - line_width,
             };
-            for i in starting_index..end_index {
-                let layout_rect = &mut positions_and_size[i];
-
+            for layout_rect in positions_and_size
+                .iter_mut()
+                .take(end_index)
+                .skip(starting_index)
+            {
                 layout_rect.position.0 += position.0 + shift_x;
                 layout_rect.position.1 += position.1;
             }

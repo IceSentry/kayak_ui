@@ -107,18 +107,16 @@ impl<'a, 'c> ToTokens for CustomWidgetAttributes<'a, 'c> {
             }
         }
 
-        let quoted = if attrs.len() == 0 {
+        let quoted = if attrs.is_empty() {
             quote!({ ..Default::default() })
+        } else if !self
+            .attributes
+            .iter()
+            .any(|attribute| attribute.ident().to_token_stream().to_string() == "styles")
+        {
+            quote!({ #(#attrs),*, ..Default::default() })
         } else {
-            if !self
-                .attributes
-                .iter()
-                .any(|attribute| attribute.ident().to_token_stream().to_string() == "styles")
-            {
-                quote!({ #(#attrs),*, ..Default::default() })
-            } else {
-                quote!({ #(#attrs),*, ..Default::default()  })
-            }
+            quote!({ #(#attrs),*, ..Default::default()  })
         };
 
         quoted.to_tokens(tokens);

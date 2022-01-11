@@ -67,12 +67,12 @@ impl Tree {
             return Vec::new();
         }
         let iterator = DownwardIterator {
-            tree: &self,
+            tree: self,
             current_node: Some(self.root_node.unwrap()),
             starting: true,
         };
 
-        iterator.collect::<Vec<_>>()
+        iterator.collect()
     }
 
     pub fn flatten_node(&self, root_node: Index) -> Vec<Index> {
@@ -80,26 +80,22 @@ impl Tree {
             return Vec::new();
         }
         let iterator = DownwardIterator {
-            tree: &self,
+            tree: self,
             current_node: Some(root_node),
             starting: true,
         };
 
-        iterator.collect::<Vec<_>>()
+        iterator.collect()
     }
 
     pub fn get_parent(&self, index: Index) -> Option<Index> {
-        self.parents
-            .get(&index)
-            .map_or(None, |parent| Some(*parent))
+        self.parents.get(&index).copied()
     }
 
     pub fn get_first_child(&self, index: Index) -> Option<Index> {
-        self.children.get(&index).map_or(None, |children| {
-            children
-                .first()
-                .map_or(None, |first_child| Some(*first_child))
-        })
+        self.children
+            .get(&index)
+            .and_then(|children| children.first().copied())
     }
 
     pub fn get_last_child(&self, _index: Index) -> Option<Index> {
@@ -108,15 +104,11 @@ impl Tree {
 
     pub fn get_next_sibling(&self, index: Index) -> Option<Index> {
         if let Some(parent_index) = self.get_parent(index) {
-            self.children.get(&parent_index).map_or(None, |children| {
+            self.children.get(&parent_index).and_then(|children| {
                 children
                     .iter()
                     .position(|child| *child == index)
-                    .map_or(None, |child_index| {
-                        children
-                            .get(child_index + 1)
-                            .map_or(None, |next_child| Some(*next_child))
-                    })
+                    .and_then(|child_index| children.get(child_index + 1).copied())
             })
         } else {
             None
@@ -124,15 +116,11 @@ impl Tree {
     }
 
     pub fn get_prev_sibling(&self, index: Index) -> Option<Index> {
-        self.children.get(&index).map_or(None, |children| {
+        self.children.get(&index).and_then(|children| {
             children
                 .iter()
                 .position(|child| *child == index)
-                .map_or(None, |child_index| {
-                    children
-                        .get(child_index - 1)
-                        .map_or(None, |next_child| Some(*next_child))
-                })
+                .and_then(|child_index| children.get(child_index - 1).copied())
         })
     }
 
@@ -140,26 +128,28 @@ impl Tree {
         let children_a = self.children.get(&root_node);
         let children_b = other_tree.children.get(&root_node);
         // Handle both easy cases first..
-        if children_a.is_some() && children_b.is_none() {
-            return children_a
-                .unwrap()
-                .iter()
-                .enumerate()
-                .map(|(child_id, child_node)| {
-                    (child_id, *child_node, root_node, vec![Change::Deleted])
-                })
-                .collect::<Vec<_>>()
-                .into();
-        } else if children_a.is_none() && children_b.is_some() {
-            return children_b
-                .unwrap()
-                .iter()
-                .enumerate()
-                .map(|(child_id, child_node)| {
-                    (child_id, *child_node, root_node, vec![Change::Inserted])
-                })
-                .collect::<Vec<_>>()
-                .into();
+        if let Some(children_a) = children_a {
+            if children_b.is_none() {
+                return children_a
+                    .iter()
+                    .enumerate()
+                    .map(|(child_id, child_node)| {
+                        (child_id, *child_node, root_node, vec![Change::Deleted])
+                    })
+                    .collect::<Vec<_>>()
+                    .into();
+            }
+        } else if let Some(children_b) = children_b {
+            if children_a.is_none() {
+                return children_b
+                    .iter()
+                    .enumerate()
+                    .map(|(child_id, child_node)| {
+                        (child_id, *child_node, root_node, vec![Change::Inserted])
+                    })
+                    .collect::<Vec<_>>()
+                    .into();
+            }
         } else if children_a.is_none() && children_b.is_none() {
             return vec![].into();
         }
@@ -168,14 +158,14 @@ impl Tree {
 
         let children_a = children_a
             .unwrap()
-            .into_iter()
-            .map(|i| *i)
+            .iter()
+            .copied()
             .enumerate()
             .collect::<Vec<(usize, Index)>>();
         let children_b = children_b
             .unwrap()
-            .into_iter()
-            .map(|i| *i)
+            .iter()
+            .copied()
             .enumerate()
             .collect::<Vec<(usize, Index)>>();
 
@@ -234,8 +224,7 @@ impl Tree {
                     let parent_a = parent_a.unwrap();
                     let parent_b = parent_b.unwrap();
                     parent_a != parent_b
-                        || (parent_a == parent_b
-                            && *node != children_a.get(*id).unwrap().1
+                        || (*node != children_a.get(*id).unwrap().1
                             && children_a.iter().any(|(_, node_b)| node == node_b))
                 } else {
                     false
@@ -244,12 +233,10 @@ impl Tree {
                 if definitely_moved {
                     let change = if change[0] == Change::Unchanged {
                         vec![Change::Moved]
+                    } else if change[0] == Change::Updated {
+                        vec![Change::Moved, Change::Updated]
                     } else {
-                        if change[0] == Change::Updated {
-                            vec![Change::Moved, Change::Updated]
-                        } else {
-                            vec![Change::Moved]
-                        }
+                        vec![Change::Moved]
                     };
                     return (*id, *node, *parent_node, change);
                 }
@@ -356,8 +343,7 @@ impl Tree {
                     let parent_a = parent_a.unwrap();
                     let parent_b = parent_b.unwrap();
                     parent_a != parent_b
-                        || (parent_a == parent_b
-                            && *node != tree1.get(*id).unwrap().1
+                        || (*node != tree1.get(*id).unwrap().1
                             && tree1.iter().any(|(_, node_b)| node == node_b))
                 } else {
                     false
@@ -366,12 +352,10 @@ impl Tree {
                 if definitely_moved {
                     let change = if change[0] == Change::Unchanged {
                         vec![Change::Moved]
+                    } else if change[0] == Change::Updated {
+                        vec![Change::Moved, Change::Updated]
                     } else {
-                        if change[0] == Change::Updated {
-                            vec![Change::Moved, Change::Updated]
-                        } else {
-                            vec![Change::Moved]
-                        }
+                        vec![Change::Moved]
                     };
                     return (*id, *node, *parent_node, change);
                 }
@@ -394,10 +378,9 @@ impl Tree {
             // Simple case of moving all children over to A.
             self.children.insert(root_node, children_b.unwrap().clone());
             return;
-        } else if children_a.is_some() && children_b.is_none() {
+        } else if let Some(children_a) = children_a {
             // Case for erasing all
-            if has_changes {
-                let children_a = children_a.unwrap();
+            if children_b.is_none() && has_changes {
                 for child in children_a.iter() {
                     self.parents.remove(&*child);
                 }
@@ -477,7 +460,7 @@ impl<'a> Iterator for DownwardIterator<'a> {
             }
         }
 
-        return None;
+        None
     }
 }
 
@@ -545,11 +528,7 @@ impl<'a> Hierarchy<'a> for Tree {
     fn is_first_child(&self, node: Self::Item) -> bool {
         if let Some(parent) = self.parent(node) {
             if let Some(first_child) = self.get_first_child(parent) {
-                if first_child == node {
-                    return true;
-                } else {
-                    return false;
-                }
+                return first_child == node;
             }
         }
 
@@ -592,6 +571,12 @@ impl WidgetTree {
     }
 }
 
+impl Default for WidgetTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[test]
 fn test_tree() {
     use crate::node::NodeBuilder;
@@ -606,8 +591,10 @@ fn test_tree() {
     // Child 2 of root
     let index4 = store.insert(NodeBuilder::empty().build());
 
-    let mut tree = Tree::default();
-    tree.root_node = Some(root);
+    let mut tree = Tree {
+        root_node: Some(root),
+        ..Default::default()
+    };
 
     // Setup Parents..
     tree.parents.insert(index1, root);

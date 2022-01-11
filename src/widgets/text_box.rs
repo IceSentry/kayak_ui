@@ -1,8 +1,10 @@
+use kayak_render_macros::use_state;
+
 use crate::core::{
     render_command::RenderCommand,
     rsx,
     styles::{Style, StyleProp, Units},
-    widget, Bound, Color, EventType, MutableBound, OnEvent,
+    widget, Color, EventType, OnEvent,
 };
 use std::sync::{Arc, RwLock};
 
@@ -65,15 +67,13 @@ pub fn TextBox(value: String, on_change: Option<OnChange>, placeholder: Option<S
         ..styles.clone().unwrap_or_default()
     };
 
-    let has_focus = context.create_state(Focus(false)).unwrap();
+    let (has_focus, set_has_focus, _) = use_state!(Focus(false));
 
     let mut current_value = value.clone();
-    let cloned_on_change = on_change.clone();
-    let cloned_has_focus = has_focus.clone();
 
     self.on_event = Some(OnEvent::new(move |_, event| match event.event_type {
         EventType::CharInput { c } => {
-            if !cloned_has_focus.get().0 {
+            if !has_focus.0 {
                 return;
             }
             if is_backspace(c) {
@@ -83,7 +83,7 @@ pub fn TextBox(value: String, on_change: Option<OnChange>, placeholder: Option<S
             } else if !c.is_control() {
                 current_value.push(c);
             }
-            if let Some(on_change) = cloned_on_change.as_ref() {
+            if let Some(on_change) = on_change.as_ref() {
                 if let Ok(mut on_change) = on_change.0.write() {
                     on_change(ChangeEvent {
                         value: current_value.clone(),
@@ -91,12 +91,12 @@ pub fn TextBox(value: String, on_change: Option<OnChange>, placeholder: Option<S
                 }
             }
         }
-        EventType::Focus => cloned_has_focus.set(Focus(true)),
-        EventType::Blur => cloned_has_focus.set(Focus(false)),
+        EventType::Focus => set_has_focus(Focus(true)),
+        EventType::Blur => set_has_focus(Focus(false)),
         _ => {}
     }));
 
-    let text_styles = if value.is_empty() || (has_focus.get().0 && value.is_empty()) {
+    let text_styles = if value.is_empty() || (has_focus.0 && value.is_empty()) {
         Style {
             color: StyleProp::Value(Color::new(0.5, 0.5, 0.5, 1.0)),
             ..Style::default()

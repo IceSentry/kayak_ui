@@ -11,7 +11,7 @@ impl<T> MultiState<T> {
     }
 
     pub fn get_or_add(&mut self, initial_value: T, index: &mut usize) -> &T {
-        if !self.data.get(*index).is_some() {
+        if self.data.get(*index).is_none() {
             self.data.push(initial_value);
         }
         let item = &self.data[*index];
@@ -20,7 +20,6 @@ impl<T> MultiState<T> {
     }
 
     pub fn get(&self, index: usize) -> &T {
-        let item = &self.data[index];
-        item
+        &self.data[index]
     }
 }

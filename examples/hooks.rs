@@ -38,9 +38,10 @@ fn StateCounter() {
     // Keep the borrow checker in mind! We can pass both `count` and `set_count` to this closure because they
     // both implement `Copy`. For other types, you may have to clone the state to pass it into a closure like this.
     // (You can also clone the setter as well if you need to use it in multiple places.)
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => set_count(count + 1),
-        _ => {}
+    let on_event = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
+            set_count(count + 1)
+        }
     });
 
     rsx! {
@@ -63,9 +64,10 @@ fn EffectCounter() {
     // In order to create this side-effect, we need access to the raw state binding. This is easily done by using
     // the third field in the tuple returned from the `use_state` macro.
     let (count, set_count, raw_count) = use_state!(0);
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => set_count(count + 1),
-        _ => {}
+    let on_event = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
+            set_count(count + 1)
+        }
     });
 
     // This is the state our side-effect will update in response to changes on `raw_count`.

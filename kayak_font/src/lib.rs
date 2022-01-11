@@ -54,11 +54,8 @@ pub mod bevy {
     ) {
         // quick and dirty, run this for all textures anytime a texture is created.
         for event in font_events.iter() {
-            match event {
-                AssetEvent::Created { handle } => {
-                    not_processed.push(handle.clone_weak());
-                }
-                _ => (),
+            if let AssetEvent::Created { handle } = event {
+                not_processed.push(handle.clone_weak());
             }
         }
 

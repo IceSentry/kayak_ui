@@ -34,15 +34,16 @@ fn Counter(context: &mut KayakContext) {
     };
 
     let (count, set_count, ..) = use_state!(0i32);
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => set_count(count + 1),
-        _ => {}
+    let on_event = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
+            set_count(count + 1)
+        }
     });
 
     rsx! {
         <>
             <Window position={(50.0, 50.0)} size={(300.0, 300.0)} title={"Counter Example".to_string()}>
-                <Text styles={Some(text_styles)} size={32.0} content={format!("Current Count: {}", count).to_string()}>{}</Text>
+                <Text styles={Some(text_styles)} size={32.0} content={format!("Current Count: {}", count)}>{}</Text>
                 <Button on_event={Some(on_event)}>
                     <Text styles={Some(button_text_styles)} size={24.0} content={"Count!".to_string()}>{}</Text>
                 </Button>

@@ -3,6 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use crate::layout_cache::Rect;
 use crate::{
     layout_cache::LayoutCache,
     node::{Node, NodeBuilder},
@@ -12,7 +13,6 @@ use crate::{
     tree::Tree,
     Arena, Index, Widget,
 };
-use crate::layout_cache::Rect;
 // use as_any::Downcast;
 
 #[derive(Debug)]
@@ -201,8 +201,8 @@ impl WidgetManager {
                 .children
                 .get(&dirty_node_index)
                 .cloned()
-                .unwrap_or(vec![]);
-            let styles = styles.unwrap_or(default_styles.clone());
+                .unwrap_or_default();
+            let styles = styles.unwrap_or_else(|| default_styles.clone());
 
             let mut node = NodeBuilder::empty()
                 .with_id(dirty_node_index)
@@ -302,11 +302,8 @@ impl WidgetManager {
                         // Between each child node we need to reset the clip.
                         if matches!(prev_clip, RenderPrimitive::Clip { .. }) {
                             // main_z_index = new_z_index;
-                            match &mut prev_clip {
-                                RenderPrimitive::Clip { layout } => {
-                                    layout.z_index = main_z_index + 0.1;
-                                }
-                                _ => {}
+                            if let RenderPrimitive::Clip { layout } = &mut prev_clip {
+                                layout.z_index = main_z_index + 0.1;
                             };
                             render_primitives.push(prev_clip.clone());
                         }
@@ -388,5 +385,11 @@ impl WidgetManager {
             }
         }
         None
+    }
+}
+
+impl Default for WidgetManager {
+    fn default() -> Self {
+        Self::new()
     }
 }

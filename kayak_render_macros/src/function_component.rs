@@ -3,14 +3,9 @@ use proc_macro_error::emit_error;
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 
+#[derive(Default)]
 pub struct WidgetArguments {
     pub focusable: bool,
-}
-
-impl Default for WidgetArguments {
-    fn default() -> Self {
-        Self { focusable: false }
-    }
 }
 
 pub fn create_function_widget(f: syn::ItemFn, widget_arguments: WidgetArguments) -> TokenStream {
@@ -143,7 +138,7 @@ pub fn create_function_widget(f: syn::ItemFn, widget_arguments: WidgetArguments)
         });
     }
 
-    let inputs_reading_ref = if inputs.len() == 0 {
+    let inputs_reading_ref = if inputs.is_empty() {
         quote! {
             let #struct_name { children, styles, .. } = self;
         }

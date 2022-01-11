@@ -39,11 +39,7 @@ impl Parse for Child {
 }
 
 pub fn walk_block_to_variable(block: &syn::Block) -> Option<proc_macro2::TokenStream> {
-    if let Some(statement) = block.stmts.first() {
-        return walk_statement(statement);
-    }
-
-    return None;
+    block.stmts.first().and_then(walk_statement)
 }
 
 pub fn walk_statement(statement: &syn::Stmt) -> Option<proc_macro2::TokenStream> {

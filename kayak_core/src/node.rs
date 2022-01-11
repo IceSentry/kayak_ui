@@ -36,16 +36,19 @@ impl NodeBuilder {
         }
     }
 
+    #[must_use]
     pub fn with_id(mut self, id: Index) -> Self {
         self.id = id;
         self
     }
 
+    #[must_use]
     pub fn with_children(mut self, children: Vec<Index>) -> Self {
         self.children.extend(children);
         self
     }
 
+    #[must_use]
     pub fn with_styles(mut self, styles: Style) -> Self {
         self.styles = styles;
         self
@@ -65,159 +68,147 @@ impl<'a> morphorm::Node<'a> for Index {
     type Data = Arena<Option<Node>>;
 
     fn layout_type(&self, store: &'_ Self::Data) -> Option<morphorm::LayoutType> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.layout_type {
-                    StyleProp::Default => Some(morphorm::LayoutType::default()),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::LayoutType::default()),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.layout_type {
+                StyleProp::Default => Some(morphorm::LayoutType::default()),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::LayoutType::default()),
             }
+        } else {
+            Some(morphorm::LayoutType::default())
         }
-        return Some(morphorm::LayoutType::default());
     }
 
     fn position_type(&self, store: &'_ Self::Data) -> Option<morphorm::PositionType> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.position_type {
-                    StyleProp::Default => Some(morphorm::PositionType::default()),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::PositionType::default()),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.position_type {
+                StyleProp::Default => Some(morphorm::PositionType::default()),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::PositionType::default()),
             }
+        } else {
+            Some(morphorm::PositionType::default())
         }
-        return Some(morphorm::PositionType::default());
     }
 
     fn width(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.width {
-                    StyleProp::Default => Some(morphorm::Units::Stretch(1.0)),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Stretch(1.0)),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.width {
+                StyleProp::Default => Some(morphorm::Units::Stretch(1.0)),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Stretch(1.0)),
             }
+        } else {
+            Some(morphorm::Units::Stretch(1.0))
         }
-        return Some(morphorm::Units::Stretch(1.0));
     }
 
     fn height(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.height {
-                    StyleProp::Default => Some(morphorm::Units::Stretch(1.0)),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Stretch(1.0)),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.height {
+                StyleProp::Default => Some(morphorm::Units::Stretch(1.0)),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Stretch(1.0)),
             }
+        } else {
+            Some(morphorm::Units::Stretch(1.0))
         }
-        return Some(morphorm::Units::Stretch(1.0));
     }
 
     fn min_width(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.min_width {
-                    StyleProp::Default => Some(morphorm::Units::Pixels(0.0)),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.min_width {
+                StyleProp::Default => Some(morphorm::Units::Pixels(0.0)),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        Some(morphorm::Units::Auto)
     }
 
     fn min_height(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.min_height {
-                    StyleProp::Default => Some(morphorm::Units::Pixels(0.0)),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.min_height {
+                StyleProp::Default => Some(morphorm::Units::Pixels(0.0)),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        Some(morphorm::Units::Auto)
     }
 
     fn max_width(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.max_width {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.max_width {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        Some(morphorm::Units::Auto)
     }
 
     fn max_height(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.max_height {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.max_height {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        Some(morphorm::Units::Auto)
     }
 
     fn left(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.left {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.left {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn right(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.right {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.right {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn top(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.top {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.top {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn bottom(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.bottom {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.bottom {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn min_left(&self, _store: &'_ Self::Data) -> Option<morphorm::Units> {
@@ -253,55 +244,51 @@ impl<'a> morphorm::Node<'a> for Index {
     }
 
     fn child_left(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.padding_left {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.padding_left {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn child_right(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.padding_right {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.padding_right {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn child_top(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.padding_top {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.padding_top {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn child_bottom(&self, store: &'_ Self::Data) -> Option<morphorm::Units> {
-        if let Some(node) = store.get(*self) {
-            if let Some(node) = node {
-                return match node.styles.padding_bottom {
-                    StyleProp::Default => Some(morphorm::Units::Auto),
-                    StyleProp::Value(prop) => Some(prop),
-                    _ => Some(morphorm::Units::Auto),
-                };
+        if let Some(Some(node)) = store.get(*self) {
+            match node.styles.padding_bottom {
+                StyleProp::Default => Some(morphorm::Units::Auto),
+                StyleProp::Value(prop) => Some(prop),
+                _ => Some(morphorm::Units::Auto),
             }
+        } else {
+            Some(morphorm::Units::Auto)
         }
-        return Some(morphorm::Units::Auto);
     }
 
     fn row_between(&self, _store: &'_ Self::Data) -> Option<morphorm::Units> {

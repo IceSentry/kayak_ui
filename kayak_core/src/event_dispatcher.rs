@@ -1,7 +1,7 @@
-use std::collections::{HashMap, HashSet};
-use crate::{Event, EventType, Index, InputEvent, InputEventCategory, KayakContext, PointerEvents};
 use crate::layout_cache::Rect;
 use crate::widget_manager::WidgetManager;
+use crate::{Event, EventType, Index, InputEvent, InputEventCategory, KayakContext, PointerEvents};
+use std::collections::{HashMap, HashSet};
 
 type EventMap = HashMap<Index, HashSet<EventType>>;
 type TreeNode = (
@@ -91,11 +91,7 @@ impl EventDispatcher {
                 };
 
                 // --- Update State --- //
-                Self::insert_event(
-                    &mut next_events,
-                    &index,
-                    node_event.event_type,
-                );
+                Self::insert_event(&mut next_events, &index, node_event.event_type);
 
                 // --- Call Event --- //
                 let mut target_widget = context.widget_manager.take(index);
@@ -122,7 +118,8 @@ impl EventDispatcher {
 
             // Mouse is currently within this node
             if events.contains(&EventType::MouseIn)
-                && !Self::contains_event(&next_events, index, &EventType::MouseOut) {
+                && !Self::contains_event(&next_events, index, &EventType::MouseOut)
+            {
                 // Make sure this event isn't removed while mouse is still within node
                 Self::insert_event(&mut next_events, index, EventType::MouseIn);
             }
@@ -133,7 +130,11 @@ impl EventDispatcher {
     }
 
     /// Generates a stream of [Events](crate::Event) from a set of [InputEvents](crate::InputEvent)
-    fn build_event_stream(&mut self, input_events: &[InputEvent], widget_manager: &WidgetManager) -> Vec<Event> {
+    fn build_event_stream(
+        &mut self,
+        input_events: &[InputEvent],
+        widget_manager: &WidgetManager,
+    ) -> Vec<Event> {
         let mut event_stream = Vec::<Event>::new();
         let mut states: HashMap<EventType, EventState> = HashMap::new();
 
@@ -145,7 +146,7 @@ impl EventDispatcher {
 
         // === Mouse Events === //
         let mut stack: Vec<TreeNode> = vec![(root, 0)];
-        while stack.len() > 0 {
+        while !stack.is_empty() {
             let (current, depth) = stack.pop().unwrap();
             let mut enter_children = true;
 
@@ -162,7 +163,12 @@ impl EventDispatcher {
 
                     match pointer_events {
                         PointerEvents::All | PointerEvents::SelfOnly => {
-                            let events = self.process_pointer_events(input_event, (current, depth), &mut states, widget_manager);
+                            let events = self.process_pointer_events(
+                                input_event,
+                                (current, depth),
+                                &mut states,
+                                widget_manager,
+                            );
                             event_stream.extend(events);
 
                             if matches!(pointer_events, PointerEvents::SelfOnly) {
@@ -200,17 +206,14 @@ impl EventDispatcher {
             if let Some(node) = state.best_match {
                 event_stream.push(Event::new(node, event_type));
 
-                match event_type {
-                    EventType::Focus => {
-                        had_focus_event = true;
-                        if let Some(current_focus) = self.current_focus {
-                            if current_focus != node {
-                                event_stream.push(Event::new(current_focus, EventType::Blur));
-                            }
+                if event_type == EventType::Focus {
+                    had_focus_event = true;
+                    if let Some(current_focus) = self.current_focus {
+                        if current_focus != node {
+                            event_stream.push(Event::new(current_focus, EventType::Blur));
                         }
-                        self.current_focus = Some(node);
                     }
-                    _ => {}
+                    self.current_focus = Some(node);
                 }
             }
         }
@@ -230,7 +233,13 @@ impl EventDispatcher {
         event_stream
     }
 
-    fn process_pointer_events(&mut self, input_event: &InputEvent, tree_node: TreeNode, states: &mut HashMap<EventType, EventState>, widget_manager: &WidgetManager) -> Vec<Event> {
+    fn process_pointer_events(
+        &mut self,
+        input_event: &InputEvent,
+        tree_node: TreeNode,
+        states: &mut HashMap<EventType, EventState>,
+        widget_manager: &WidgetManager,
+    ) -> Vec<Event> {
         let mut event_stream = Vec::<Event>::new();
         let (node, depth) = tree_node;
 
@@ -280,11 +289,8 @@ impl EventDispatcher {
                     if layout.contains(&self.current_mouse_position) {
                         event_stream.push(Event::new(node, EventType::MouseUp));
 
-                        if Self::contains_event(
-                            &self.previous_events,
-                            &node,
-                            &EventType::MouseDown,
-                        ) {
+                        if Self::contains_event(&self.previous_events, &node, &EventType::MouseDown)
+                        {
                             Self::update_state(states, (node, depth), layout, EventType::Click);
                         }
                     }
@@ -296,16 +302,22 @@ impl EventDispatcher {
         event_stream
     }
 
-    fn process_keyboard_events(&mut self, input_event: &InputEvent, _states: &mut HashMap<EventType, EventState>, _widget_manager: &WidgetManager) -> Vec<Event> {
+    fn process_keyboard_events(
+        &mut self,
+        input_event: &InputEvent,
+        _states: &mut HashMap<EventType, EventState>,
+        _widget_manager: &WidgetManager,
+    ) -> Vec<Event> {
         let mut event_stream = Vec::new();
         if let Some(current_focus) = self.current_focus {
             match input_event {
-                InputEvent::CharEvent { c } => event_stream.push(
-                    Event::new(current_focus, EventType::CharInput { c: *c })
-                ),
-                InputEvent::Keyboard { key } => event_stream.push(
-                    Event::new(current_focus, EventType::KeyboardInput { key: *key })
-                ),
+                InputEvent::CharEvent { c } => {
+                    event_stream.push(Event::new(current_focus, EventType::CharInput { c: *c }))
+                }
+                InputEvent::Keyboard { key } => event_stream.push(Event::new(
+                    current_focus,
+                    EventType::KeyboardInput { key: *key },
+                )),
                 _ => {}
             }
         }
@@ -314,8 +326,13 @@ impl EventDispatcher {
     }
 
     /// Updates the state data for the given event
-    fn update_state(states: &mut HashMap<EventType, EventState>, tree_node: TreeNode, layout: &Rect, event_type: EventType) {
-        let state = states.entry(event_type).or_insert(EventState::default());
+    fn update_state(
+        states: &mut HashMap<EventType, EventState>,
+        tree_node: TreeNode,
+        layout: &Rect,
+        event_type: EventType,
+    ) {
+        let state = states.entry(event_type).or_insert_with(EventState::default);
 
         let (node, depth) = tree_node;
         // Node is at or above best depth and is at or above best z-level
@@ -341,7 +358,7 @@ impl EventDispatcher {
 
     /// Insert an event for a widget in the given event map
     fn insert_event(events: &mut EventMap, widget_id: &Index, event_type: EventType) -> bool {
-        let entry = events.entry(*widget_id).or_insert(HashSet::default());
+        let entry = events.entry(*widget_id).or_insert_with(HashSet::default);
         entry.insert(event_type)
     }
 }

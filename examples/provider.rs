@@ -84,17 +84,16 @@ fn ThemeButton(context: &mut KayakContext, theme: Theme) {
         .expect("Requires ThemeProvider as an ancestor");
 
     let theme_name = theme.name.clone();
-    let consumer_theme_name = consumer.get().name.clone();
-    let theme_primary = theme.primary.clone();
+    let consumer_theme_name = consumer.get().name;
+    let theme_primary = theme.primary;
 
     let theme_clone = Arc::new(theme);
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => {
+    let on_event = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
             // Update the shared state
             // This will cause the ThemeProvider to re-render along with all of the other consumers
             consumer.set((*theme_clone).clone());
         }
-        _ => {}
     });
 
     let mut box_style = Style {

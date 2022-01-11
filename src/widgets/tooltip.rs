@@ -194,14 +194,14 @@ pub fn TooltipConsumer(
         }
         EventType::Hover => {
             let mut state = data.get();
-            state.anchor = anchor.unwrap_or(ctx.last_mouse_position());
+            state.anchor = anchor.unwrap_or_else(|| ctx.last_mouse_position());
             data.set(state);
         }
         EventType::MouseOut => {
             let mut state = data.get();
             // Set hidden only if the tooltip's text matches this consumer's
             // Otherwise, it likely got picked up by another widget and should be kept visible
-            state.visible = false || state.text != *text;
+            state.visible = state.text != *text;
             data.set(state);
         }
         _ => {}

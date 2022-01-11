@@ -22,7 +22,7 @@ fn Counter(context: &mut KayakContext) {
     rsx! {
         <>
             <Window position={(50.0, 50.0)} size={(300.0, 300.0)} title={"Counter Example".to_string()}>
-                <Text size={32.0} content={format!("Current Count: {}", global_count).to_string()}>{}</Text>
+                <Text size={32.0} content={format!("Current Count: {}", global_count)}>{}</Text>
             </Window>
         </>
     }

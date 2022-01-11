@@ -33,16 +33,16 @@ impl Sdf {
     }
 
     pub fn from_bytes(data: &[u8]) -> Sdf {
-        let value: Sdf = match serde_path_to_error::deserialize(
-            &mut serde_json::Deserializer::from_slice(&data),
-        ) {
-            Ok(v) => v,
-            Err(err) => {
-                let path = err.path().to_string();
-                dbg!(err);
-                panic!("failed to deserialize json! path: {}", path);
-            }
-        };
+        let value: Sdf =
+            match serde_path_to_error::deserialize(&mut serde_json::Deserializer::from_slice(data))
+            {
+                Ok(v) => v,
+                Err(err) => {
+                    let path = err.path().to_string();
+                    dbg!(err);
+                    panic!("failed to deserialize json! path: {}", path);
+                }
+            };
 
         value
     }

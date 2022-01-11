@@ -53,8 +53,8 @@ pub fn Fold(
         set_is_open(open);
     }
 
-    let handler = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => {
+    let handler = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
             if open.is_none() {
                 // This is an internally-managed state
                 set_is_open(!is_open);
@@ -63,7 +63,6 @@ pub fn Fold(
                 callback.call(!is_open);
             }
         }
-        _ => {}
     });
 
     // === Styles === //

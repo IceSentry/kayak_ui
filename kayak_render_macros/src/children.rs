@@ -38,8 +38,7 @@ impl Children {
         let children_tokens: Vec<proc_macro2::TokenStream> = match &self.nodes[index] {
             Child::Widget(widget) => (0..widget.children.nodes.len())
                 .into_iter()
-                .map(|child_id| widget.children.get_clonable_attributes(child_id))
-                .flatten()
+                .flat_map(|child_id| widget.children.get_clonable_attributes(child_id))
                 .collect(),
             _ => vec![],
         };
@@ -141,7 +140,7 @@ impl Children {
 
                 let base_matching: Vec<proc_macro2::TokenStream> = all_attributes
                     .iter()
-                    .map(|a| format!("base_{}", a).to_string().parse().unwrap())
+                    .map(|a| format!("base_{}", a).parse().unwrap())
                     .collect();
 
                 let all_attributes: Vec<proc_macro2::TokenStream> =
@@ -157,16 +156,11 @@ impl Children {
 
                 let mut output = Vec::new();
                 output.push(quote! { #base_clone });
-                for i in 0..children_quotes.len() {
+                for (i, children_quote) in children_quotes.iter().enumerate() {
                     output.push(quote! { #base_clones_inner });
                     let name: proc_macro2::TokenStream = format!("child{}", i).parse().unwrap();
-                    let child = build_arc_function(
-                        quote! { #name },
-                        children_quotes[i].clone(),
-                        true,
-                        i,
-                        true,
-                    );
+                    let child =
+                        build_arc_function(quote! { #name }, children_quote.clone(), true, i, true);
                     output.push(quote! { #child });
                 }
 

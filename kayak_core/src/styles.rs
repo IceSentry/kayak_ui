@@ -1,7 +1,7 @@
 pub use morphorm::{LayoutType, PositionType, Units};
 
-use crate::{color::Color, render_command::RenderCommand};
 use crate::cursor::PointerEvents;
+use crate::{color::Color, render_command::RenderCommand};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StyleProp<T: Default + Clone> {
@@ -58,7 +58,7 @@ pub struct Style {
     pub min_height: StyleProp<Units>,
     pub max_width: StyleProp<Units>,
     pub max_height: StyleProp<Units>,
-    pub pointer_events: StyleProp<PointerEvents>
+    pub pointer_events: StyleProp<PointerEvents>,
 }
 
 impl Default for Style {
@@ -95,109 +95,65 @@ impl Default for Style {
 
 impl Style {
     pub fn merge(&mut self, other: &Self) {
-        match self.background_color {
-            StyleProp::Inherit => {
-                self.background_color = other.background_color.clone();
-            }
-            _ => (),
+        if self.background_color == StyleProp::Inherit {
+            self.background_color = other.background_color.clone();
         }
-        match self.border_radius {
-            StyleProp::Inherit => {
-                self.border_radius = other.border_radius.clone();
-            }
-            _ => (),
+        if self.border_radius == StyleProp::Inherit {
+            self.border_radius = other.border_radius.clone();
         }
-        match self.bottom {
-            StyleProp::Inherit => {
-                self.bottom = other.bottom.clone();
-            }
-            _ => (),
+        if self.bottom == StyleProp::Inherit {
+            self.bottom = other.bottom.clone();
         }
-        match self.color {
-            StyleProp::Inherit => {
-                self.color = other.color.clone();
-            }
-            _ => (),
+        if self.color == StyleProp::Inherit {
+            self.color = other.color.clone();
         }
-        match self.height {
-            StyleProp::Inherit => {
-                self.height = other.height.clone();
-            }
-            _ => (),
+        if self.height == StyleProp::Inherit {
+            self.height = other.height.clone();
         }
-        match self.layout_type {
-            StyleProp::Inherit => {
-                self.layout_type = other.layout_type.clone();
-            }
-            _ => (),
+        if self.layout_type == StyleProp::Inherit {
+            self.layout_type = other.layout_type.clone();
         }
-        match self.left {
-            StyleProp::Inherit => {
-                self.left = other.left.clone();
-            }
-            _ => (),
+        if self.left == StyleProp::Inherit {
+            self.left = other.left.clone();
         }
-        match self.position_type {
-            StyleProp::Inherit => {
-                self.position_type = other.position_type.clone();
-            }
-            _ => (),
+        if self.position_type == StyleProp::Inherit {
+            self.position_type = other.position_type.clone();
         }
-        match self.render_command {
-            StyleProp::Inherit => {
-                self.render_command = other.render_command.clone();
-            }
-            _ => (),
+        if self.render_command == StyleProp::Inherit {
+            self.render_command = other.render_command.clone();
         }
-        match self.right {
-            StyleProp::Inherit => {
-                self.right = other.right.clone();
-            }
-            _ => (),
+        if self.right == StyleProp::Inherit {
+            self.right = other.right.clone();
         }
-        match self.top {
-            StyleProp::Inherit => {
-                self.top = other.top.clone();
-            }
-            _ => (),
+        if self.top == StyleProp::Inherit {
+            self.top = other.top.clone();
         }
-        match self.width {
-            StyleProp::Inherit => {
-                self.width = other.width.clone();
-            }
-            _ => (),
+        if self.width == StyleProp::Inherit {
+            self.width = other.width.clone();
         }
-        match self.padding_left {
-            StyleProp::Inherit => self.padding_left = other.padding_left.clone(),
-            _ => (),
+        if self.padding_left == StyleProp::Inherit {
+            self.padding_left = other.padding_left.clone()
         }
-        match self.padding_right {
-            StyleProp::Inherit => self.padding_right = other.padding_right.clone(),
-            _ => (),
+        if self.padding_right == StyleProp::Inherit {
+            self.padding_right = other.padding_right.clone()
         }
-        match self.padding_top {
-            StyleProp::Inherit => self.padding_top = other.padding_top.clone(),
-            _ => (),
+        if self.padding_top == StyleProp::Inherit {
+            self.padding_top = other.padding_top.clone()
         }
-        match self.padding_bottom {
-            StyleProp::Inherit => self.padding_bottom = other.padding_bottom.clone(),
-            _ => (),
+        if self.padding_bottom == StyleProp::Inherit {
+            self.padding_bottom = other.padding_bottom.clone()
         }
-        match self.margin_left {
-            StyleProp::Inherit => self.margin_left = other.margin_left.clone(),
-            _ => (),
+        if self.margin_left == StyleProp::Inherit {
+            self.margin_left = other.margin_left.clone()
         }
-        match self.margin_right {
-            StyleProp::Inherit => self.margin_right = other.margin_right.clone(),
-            _ => (),
+        if self.margin_right == StyleProp::Inherit {
+            self.margin_right = other.margin_right.clone()
         }
-        match self.margin_top {
-            StyleProp::Inherit => self.margin_top = other.margin_top.clone(),
-            _ => (),
+        if self.margin_top == StyleProp::Inherit {
+            self.margin_top = other.margin_top.clone()
         }
-        match self.margin_bottom {
-            StyleProp::Inherit => self.margin_bottom = other.margin_bottom.clone(),
-            _ => (),
+        if self.margin_bottom == StyleProp::Inherit {
+            self.margin_bottom = other.margin_bottom.clone()
         }
     }
 }

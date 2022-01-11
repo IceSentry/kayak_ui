@@ -23,11 +23,10 @@ pub fn Card(card_id: usize, name: String, on_delete: Handler<usize>) {
     };
 
     let on_delete = on_delete.clone();
-    let on_event = OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => {
+    let on_event = OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
             on_delete.call(card_id);
         }
-        _ => (),
     });
 
     rsx! {

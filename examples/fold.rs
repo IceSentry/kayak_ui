@@ -68,14 +68,16 @@ fn FolderTree(context: &mut KayakContext) {
 
     let (is_b_open, set_b_open, ..) = use_state!(false);
     let set_close_b = set_b_open.clone();
-    let close_b = Some(OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => set_close_b(false),
-        _ => {}
+    let close_b = Some(OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
+            set_close_b(false)
+        }
     }));
     let set_open_b = set_b_open.clone();
-    let open_b = Some(OnEvent::new(move |_, event| match event.event_type {
-        EventType::Click => set_open_b(true),
-        _ => {}
+    let open_b = Some(OnEvent::new(move |_, event| {
+        if event.event_type == EventType::Click {
+            set_open_b(true)
+        }
     }));
 
     // === Folder C === //
