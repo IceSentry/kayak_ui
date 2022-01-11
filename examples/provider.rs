@@ -10,16 +10,19 @@
 //! for better specificity and makes local contexts much easier to manage. In the case of theming,
 //! this allows us to have multiple active themes, even if they are nested within each other!
 
-use std::sync::Arc;
-use bevy::prelude::{App as BevyApp, AssetServer, Commands, DefaultPlugins, Res, ResMut, WindowDescriptor};
+use bevy::prelude::{
+    App as BevyApp, AssetServer, Commands, DefaultPlugins, Res, ResMut, WindowDescriptor,
+};
 use kayak_ui::{
     bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle},
     core::{
-        Bound, Color, EventType, Index, MutableBound, OnEvent, render, rsx, widget,
+        render, rsx,
         styles::{LayoutType, Style, StyleProp, Units},
+        widget, Bound, Color, EventType, Index, MutableBound, OnEvent,
     },
     widgets::{App, Background, Element, If, Text, TooltipConsumer, TooltipProvider, Window},
 };
+use std::sync::Arc;
 
 /// The color theme struct we will be using across our demo widgets
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -74,10 +77,11 @@ fn ThemeProvider(context: &mut KayakContext, initial_theme: Theme) {
 /// display its content and also updates the shared state when clicked.
 #[widget]
 fn ThemeButton(context: &mut KayakContext, theme: Theme) {
-
     // Create a consumer
     // This grabs the current theme from the nearest ThemeProvider up the widget tree
-    let consumer = context.create_consumer::<Theme>().expect("Requires ThemeProvider as an ancestor");
+    let consumer = context
+        .create_consumer::<Theme>()
+        .expect("Requires ThemeProvider as an ancestor");
 
     let theme_name = theme.name.clone();
     let consumer_theme_name = consumer.get().name.clone();
@@ -148,7 +152,9 @@ fn ThemeSelector() {
 fn ThemeDemo(context: &mut KayakContext, is_root: bool) {
     // Create a consumer
     // This grabs the current theme from the nearest ThemeProvider up the widget tree
-    let consumer = context.create_consumer::<Theme>().expect("Requires ThemeProvider as an ancestor");
+    let consumer = context
+        .create_consumer::<Theme>()
+        .expect("Requires ThemeProvider as an ancestor");
     let theme = consumer.get();
 
     let select_lbl = if is_root {

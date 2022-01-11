@@ -1,7 +1,8 @@
 use crate::core::{
     render_command::RenderCommand,
+    rsx,
     styles::{Style, StyleProp, Units},
-    Children, EventType, Handler, rsx, widget, use_state, OnEvent
+    use_state, widget, Children, EventType, Handler, OnEvent,
 };
 
 use crate::widgets::{Background, Clip, If, Text};
@@ -37,8 +38,13 @@ use crate::widgets::{Background, Clip, If, Text};
 /// }
 /// ```
 #[widget]
-pub fn Fold(label: String, children: Children, open: Option<bool>, on_change: Option<Handler<bool>>, default_open: bool) {
-
+pub fn Fold(
+    label: String,
+    children: Children,
+    open: Option<bool>,
+    on_change: Option<Handler<bool>>,
+    default_open: bool,
+) {
     // === State === //
     let initial = default_open || open.unwrap_or_default();
     let (is_open, set_is_open, ..) = use_state!(initial);

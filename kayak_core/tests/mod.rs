@@ -23,7 +23,7 @@ fn flo_binding_test() {
         test_state.set(TestState { value: 2 });
 
         assert!(test_state.get().value == 2);
- 
+
         lifetime.done();
     };
 
